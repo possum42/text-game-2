@@ -48,12 +48,40 @@ inventory = []
 currentRoom = "Hall"
 
 rooms = {
-    "Hall": {"south": "Kitchen", "east": "Dining Room", "item": "key"},
-    "Kitchen": {"north": "Hall", "item": "monster"},
-    "Dining Room": {"west": "Hall", "south": "Garden", "item": "potion"},
-    "Garden": {"north": "Dining Room"}
-}
+    'Hall' : {
+        'south' : 'Kitchen',
+        'east' : 'Dining Room',
+        'upstairs' : 'Upper Hall',
+        'item' : 'key'
+    },
+    'Kitchen' : {
+        'north' : 'Hall',
+        'item' : 'monster'
+    },
 
+    'Dining Room' : {
+        'west' : 'Hall',
+        'south' : 'Garden',
+        'item' : 'potion'
+        },
+    'Garden' : {
+        'north' : 'Dining Room'
+        },
+    'Upper Hall' : {
+        'downstairs' : 'Hall',
+        'east' : 'Lisa Bedroom',
+        'west' : 'Bart Bedroom',
+        'picture' : 'a beautiful painting of a garden'
+        },
+    'Lisa Bedroom' : {
+        'west' : 'Upper Hall',
+        'item' : 'bouncing red ball'
+        },
+    'Bart Bedroom' : {
+        'east' : 'Upper Hall',
+        'item' : 'monster'
+        }
+}
 # ====================== OUTPUT ======================
 def print_to_terminal(text):
     term = document.getElementById("terminal")
