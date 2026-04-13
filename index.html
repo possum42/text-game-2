@@ -46,13 +46,14 @@ from pyodide.ffi import create_proxy   # more stable import for event listeners
 # ====================== GAME DATA ======================
 inventory = []
 currentRoom = "Hall"
+currentHealth = 4      
 
 rooms = {
     'Hall' : {
         'south' : 'Kitchen',
         'east' : 'Dining Room',
         'upstairs' : 'Upper Hall',
-        'item' : 'key'
+        'item' : 'sword'
     },
     'Kitchen' : {
         'north' : 'Hall',
@@ -75,7 +76,7 @@ rooms = {
         },
     'Lisa Bedroom' : {
         'west' : 'Upper Hall',
-        'item' : 'bouncing red ball'
+        'item' : 'key'
         },
     'Bart Bedroom' : {
         'east' : 'Upper Hall',
@@ -102,6 +103,7 @@ def showStatus():
     print_to_terminal("---------------------------")
     print_to_terminal(f"You are in the <b>{currentRoom}</b>")
     print_to_terminal(f"Inventory : {inventory}")
+    print_to_terminal(f"Health : {currentHealth}")
     if "item" in rooms.get(currentRoom, {}):
         print_to_terminal(f"You see a <b>{rooms[currentRoom]['item']}</b>")
     print_to_terminal("---------------------------")
