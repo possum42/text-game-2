@@ -1,41 +1,7 @@
-<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="UTF-8">
-  <title>RPG Game</title>
-  <link rel="stylesheet" href="https://pyscript.net/releases/2025.7.1/core.css" />
-  <script type="module" src="https://pyscript.net/releases/2025.7.1/core.js"></script>
-  <style>
-    body { font-family: monospace; background: #111; color: #0f0; padding: 20px; }
-    #terminal { 
-      background: #000; 
-      padding: 15px; 
-      height: 70vh; 
-      overflow-y: auto; 
-      white-space: pre-wrap; 
-      border: 2px solid #0f0;
-    }
-    #inputBox { 
-      width: 100%; 
-      background: #000; 
-      color: #0f0; 
-      border: 2px solid #0f0; 
-      padding: 8px; 
-      font-family: monospace;
-    }
-  </style>
-</head>
-<body>
-
-  <h1>RPG Game - Get to the Garden!</h1>
-  
-  <div id="terminal"></div>
-  <input type="text" id="inputBox" placeholder="Type command here (go north, get key...) and press Enter" autofocus>
-
-  <script type="py">
+<script type="py">
 from js import document
 
-# Global variables
+# Game variables
 inventory = []
 currentRoom = "Hall"
 
@@ -71,25 +37,27 @@ def showInstructions():
     print_to_terminal("Avoid the monster!")
     print_to_terminal("")
     print_to_terminal("Commands:")
-    print_to_terminal("  go [direction]   →  go north, go south, etc.")
-    print_to_terminal("  get [item]       →  get key, get potion")
-    print_to_terminal("")
+    print_to_terminal("  go [direction]   (north, south, east, west)")
+    print_to_terminal("  get [item]")
 
 def showStatus():
     print_to_terminal("---------------------------")
     print_to_terminal(f"You are in the <b>{currentRoom}</b>")
     print_to_terminal(f"Inventory : {inventory}")
-    if "item" in rooms[currentRoom]:
+    if "item" in rooms.get(currentRoom, {}):
         print_to_terminal(f"You see a <b>{rooms[currentRoom]['item']}</b>")
     print_to_terminal("---------------------------")
 
 def process_command(cmd):
     global currentRoom, inventory
     
+    if not cmd:
+        return
+    
     parts = cmd.lower().strip().split()
     if not parts:
         return
-    
+
     if parts[0] == "go":
         if len(parts) < 2:
             print_to_terminal("Go where?")
@@ -98,54 +66,55 @@ def process_command(cmd):
         if direction in rooms[currentRoom]:
             currentRoom = rooms[currentRoom][direction]
             
-            # Monster check AFTER moving
-            if "item" in rooms[currentRoom] and rooms[currentRoom]["item"] == "monster":
-                print_to_terminal("<span style='color:red'>The monster got you... GAME OVER!</span>")
-                return  # stop playing
-            
+            # Check for monster
+            if rooms[currentRoom].get("item") == "monster":
+                print_to_terminal('<span style="color:red">The monster got you... GAME OVER!</span>')
+                return
+                
             showStatus()
             
-            # Win condition
+            # Check win condition
             if (currentRoom == "Garden" and 
                 "key" in inventory and 
                 "potion" in inventory):
-                print_to_terminal("<span style='color:lime'>You escaped the house... YOU WIN!</span>")
+                print_to_terminal('<span style="color:lime">You escaped the house... YOU WIN!</span>')
                 return
         else:
             print_to_terminal("You can't go that way!")
-    
+
     elif parts[0] == "get":
         if len(parts) < 2:
             print_to_terminal("Get what?")
             return
         item = parts[1]
-        if ("item" in rooms[currentRoom] and 
-            rooms[currentRoom]["item"] == item):
+        room_data = rooms[currentRoom]
+        if "item" in room_data and room_data["item"] == item:
             inventory.append(item)
             print_to_terminal(f"You picked up the <b>{item}</b>!")
-            del rooms[currentRoom]["item"]
+            del room_data["item"]
             showStatus()
         else:
-            print_to_terminal(f"Can't get {item}!")
+            print_to_terminal(f"There is no {item} here!")
     
     else:
         print_to_terminal("I don't understand that command.")
 
 def on_enter(event):
     if event.key == "Enter":
-        cmd = document.getElementById("inputBox").value.strip()
-        if cmd:
+        input_box = document.getElementById("inputBox")
+        cmd = input_box.value.strip()
+        
+        if cmd:                                   # only process if something was typed
             print_to_terminal(f"> {cmd}")
-            document.getElementById("inputBox").value = ""
-            process_command(cmd)
+            input_box.value = ""                  # clear the input box
+            process_command(cmd)                  # THIS was missing or broken before
 
-# Start the game
+# === Start the game ===
 showInstructions()
 showStatus()
 
-# Connect the input box
-document.getElementById("inputBox").addEventListener("keydown", on_enter)
-  </script>
-
-</body>
-</html>
+# Connect the Enter key
+input_box = document.getElementById("inputBox")
+input_box.addEventListener("keydown", on_enter)
+input_box.focus()
+</script>
