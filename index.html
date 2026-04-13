@@ -1,6 +1,47 @@
-<script type="py">
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>RPG Game</title>
+    <link rel="stylesheet" href="https://pyscript.net/releases/2026.3.1/core.css" />
+    <script type="module" src="https://pyscript.net/releases/2026.3.1/core.js"></script>
+    <style>
+        body { 
+            font-family: monospace; 
+            background: #111; 
+            color: #0f0; 
+            padding: 20px; 
+            margin: 0;
+        }
+        #terminal { 
+            background: #000; 
+            padding: 15px; 
+            height: 65vh; 
+            overflow-y: auto; 
+            border: 2px solid #0f0;
+            white-space: pre-wrap;
+            margin-bottom: 10px;
+        }
+        #inputBox { 
+            width: 100%; 
+            background: #000; 
+            color: #0f0; 
+            border: 2px solid #0f0; 
+            padding: 10px; 
+            font-family: monospace;
+            font-size: 16px;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Simple RPG Game</h1>
+    <div id="terminal"></div>
+    <input type="text" id="inputBox" placeholder="Type command and press Enter..." autofocus>
+
+    <script type="py">
+from pyscript import display   # safer way to output text
 from js import document
-from pyodide.ffi import create_proxy   # ← This line is required
 
 # Game variables
 inventory = []
@@ -76,8 +117,8 @@ def process_command(cmd):
     else:
         print_to_terminal("I don't understand that command.")
 
-# Handler function
-def handle_enter(event):
+# Simple event handler (no create_proxy needed here)
+def on_enter(event):
     if event.key == "Enter":
         input_box = document.getElementById("inputBox")
         cmd = input_box.value.strip()
@@ -86,13 +127,15 @@ def handle_enter(event):
             input_box.value = ""
             process_command(cmd)
 
-# === Start the game ===
+# Start the game
 showInstructions()
 showStatus()
 
-# Create proxy and attach listener (THIS is the fix)
-enter_proxy = create_proxy(handle_enter)
+# Attach listener
 input_box = document.getElementById("inputBox")
-input_box.addEventListener("keydown", enter_proxy)
+input_box.addEventListener("keydown", on_enter)
 input_box.focus()
-</script>
+    </script>
+
+</body>
+</html>
