@@ -46,7 +46,8 @@ from pyodide.ffi import create_proxy   # more stable import for event listeners
 # ====================== GAME DATA ======================
 inventory = []
 currentRoom = "Hall"
-currentHealth = 4      
+currentHealth = 4
+inCombat = False
 
 rooms = {
     'Hall' : {
@@ -97,6 +98,7 @@ def showInstructions():
     print_to_terminal("")
     print_to_terminal("Commands:")
     print_to_terminal("  go north / south / east / west / upstairs")
+    print_to_terminal(" attack / flee")
     print_to_terminal("  get key / get potion")
 
 def showStatus():
@@ -109,45 +111,35 @@ def showStatus():
     print_to_terminal("---------------------------")
 
 # ====================== COMMAND PROCESSING ======================
+# ====================== COMMAND PROCESSING ======================
 def process_command(cmd):
-    global currentRoom, inventory
+    global currentRoom, inventory, currentHealth, inCombat
     if not cmd:
         return
     parts = cmd.lower().strip().split()
     if not parts:
         return
-
     if parts[0] == "go":
         if len(parts) < 2:
             print_to_terminal("Go where?")
             return
-
         direction = parts[1]
-
         if direction in rooms[currentRoom]:
             currentRoom = rooms[currentRoom][direction]
-
             if rooms[currentRoom].get("item") == "monster":
-                print_to_terminal('<span style="color:red">The monster got you... GAME OVER!</span>')
-                return
-
+                print_to_terminal('<span style="color:red">You see a monster, attack or flee?</span>')
+                inCombat = True
             showStatus()
-
-            # WIN CHECK
             if currentRoom == "Garden" and "key" in inventory and "potion" in inventory:
                 print_to_terminal('<span style="color:lime">You escaped the house... YOU WIN!</span>')
                 return
-
         else:
             print_to_terminal("You can't go that way!")
-
     elif parts[0] == "get":
         if len(parts) < 2:
             print_to_terminal("Get what?")
             return
-
         item = parts[1]
-
         if "item" in rooms[currentRoom] and rooms[currentRoom]["item"] == item:
             inventory.append(item)
             print_to_terminal(f"You picked up the <b>{item}</b>!")
@@ -155,7 +147,31 @@ def process_command(cmd):
             showStatus()
         else:
             print_to_terminal(f"There is no {item} here!")
-
+    elif parts[0] == "attack":
+        if inCombat:
+            if "sword" in inventory:
+                print_to_terminal('<span style="color:lime">You attack the monster and kill it!</span>')
+                del rooms[currentRoom]["item"]
+                inCombat = False
+                showStatus()
+            else:
+                currentHealth -= 1
+                print_to_terminal(f'<span style="color:red">You have no sword! The monster hits you! Health: {currentHealth}</span>')
+                if currentHealth <= 0:
+                    print_to_terminal('<span style="color:red">You died... GAME OVER!</span>')
+        else:
+            print_to_terminal("Nothing to attack!")
+    elif parts[0] == "flee":
+        if inCombat:
+            currentHealth -= 1
+            inCombat = False
+            currentRoom = "Hall"
+            print_to_terminal(f'<span style="color:red">You flee back to the Hall! The monster got a hit in! Health: {currentHealth}</span>')
+            if currentHealth <= 0:
+                print_to_terminal('<span style="color:red">You died... GAME OVER!</span>')
+            showStatus()
+        else:
+            print_to_terminal("Nothing to flee from!")
     else:
         print_to_terminal("I don't understand that command.")
 
