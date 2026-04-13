@@ -1,8 +1,49 @@
-<script type="py">
-from js import document
-from pyscript.ffi import create_proxy   # correct import for recent PyScript
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>RPG Game</title>
+    <link rel="stylesheet" href="https://pyscript.net/releases/2026.3.1/core.css" />
+    <script type="module" src="https://pyscript.net/releases/2026.3.1/core.js"></script>
+    
+    <style>
+        body { 
+            font-family: monospace; 
+            background: #111; 
+            color: #0f0; 
+            padding: 20px; 
+        }
+        #terminal { 
+            background: #000; 
+            padding: 15px; 
+            height: 65vh; 
+            overflow-y: auto; 
+            border: 2px solid #0f0;
+            white-space: pre-wrap;
+            margin-bottom: 10px;
+        }
+        #inputBox { 
+            width: 100%; 
+            background: #000; 
+            color: #0f0; 
+            border: 2px solid #0f0; 
+            padding: 10px; 
+            font-family: monospace;
+            font-size: 16px;
+        }
+    </style>
+</head>
+<body>
 
-# Game variables
+    <h1>RPG Game - Reach the Garden!</h1>
+    <div id="terminal"></div>
+    <input type="text" id="inputBox" placeholder="Type command (e.g. go east) and press Enter" autofocus>
+
+    <script type="py">
+from js import document
+from pyodide.ffi import create_proxy   # more stable import for event listeners
+
+# ====================== GAME DATA ======================
 inventory = []
 currentRoom = "Hall"
 
@@ -13,6 +54,7 @@ rooms = {
     "Garden": {"north": "Dining Room"}
 }
 
+# ====================== OUTPUT ======================
 def print_to_terminal(text):
     term = document.getElementById("terminal")
     term.innerHTML += str(text) + "<br>"
@@ -36,6 +78,7 @@ def showStatus():
         print_to_terminal(f"You see a <b>{rooms[currentRoom]['item']}</b>")
     print_to_terminal("---------------------------")
 
+# ====================== COMMAND PROCESSING ======================
 def process_command(cmd):
     global currentRoom, inventory
     if not cmd:
@@ -76,7 +119,7 @@ def process_command(cmd):
     else:
         print_to_terminal("I don't understand that command.")
 
-# Event handler
+# ====================== EVENT HANDLER ======================
 def handle_enter(event):
     if event.key == "Enter":
         input_box = document.getElementById("inputBox")
@@ -86,22 +129,16 @@ def handle_enter(event):
             input_box.value = ""
             process_command(cmd)
 
-# === Start the game ===
+# ====================== START GAME ======================
 showInstructions()
 showStatus()
 
-# Create proxy for the event listener
+# Attach listener with proxy
 enter_proxy = create_proxy(handle_enter)
-
-# Attach the listener
 input_box = document.getElementById("inputBox")
 input_box.addEventListener("keydown", enter_proxy)
 input_box.focus()
+    </script>
 
-# Clean up the proxy when the page is unloaded (good practice)
-def cleanup():
-    enter_proxy.destroy()
-
-from js import window
-window.addEventListener("beforeunload", create_proxy(cleanup))
-</script>
+</body>
+</html>
