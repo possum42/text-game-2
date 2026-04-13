@@ -1,28 +1,16 @@
 <script type="py">
 from js import document
+from pyodide.ffi import create_proxy   # ← This line is required
 
 # Game variables
 inventory = []
 currentRoom = "Hall"
 
 rooms = {
-    "Hall": {
-        "south": "Kitchen",
-        "east": "Dining Room",
-        "item": "key"
-    },
-    "Kitchen": {
-        "north": "Hall",
-        "item": "monster"
-    },
-    "Dining Room": {
-        "west": "Hall",
-        "south": "Garden",
-        "item": "potion"
-    },
-    "Garden": {
-        "north": "Dining Room"
-    }
+    "Hall": {"south": "Kitchen", "east": "Dining Room", "item": "key"},
+    "Kitchen": {"north": "Hall", "item": "monster"},
+    "Dining Room": {"west": "Hall", "south": "Garden", "item": "potion"},
+    "Garden": {"north": "Dining Room"}
 }
 
 def print_to_terminal(text):
@@ -37,8 +25,8 @@ def showInstructions():
     print_to_terminal("Avoid the monster!")
     print_to_terminal("")
     print_to_terminal("Commands:")
-    print_to_terminal("  go [direction]   (north, south, east, west)")
-    print_to_terminal("  get [item]")
+    print_to_terminal("  go north / south / east / west")
+    print_to_terminal("  get key / get potion")
 
 def showStatus():
     print_to_terminal("---------------------------")
@@ -50,10 +38,8 @@ def showStatus():
 
 def process_command(cmd):
     global currentRoom, inventory
-    
     if not cmd:
         return
-    
     parts = cmd.lower().strip().split()
     if not parts:
         return
@@ -65,18 +51,11 @@ def process_command(cmd):
         direction = parts[1]
         if direction in rooms[currentRoom]:
             currentRoom = rooms[currentRoom][direction]
-            
-            # Check for monster
             if rooms[currentRoom].get("item") == "monster":
                 print_to_terminal('<span style="color:red">The monster got you... GAME OVER!</span>')
                 return
-                
             showStatus()
-            
-            # Check win condition
-            if (currentRoom == "Garden" and 
-                "key" in inventory and 
-                "potion" in inventory):
+            if currentRoom == "Garden" and "key" in inventory and "potion" in inventory:
                 print_to_terminal('<span style="color:lime">You escaped the house... YOU WIN!</span>')
                 return
         else:
@@ -87,34 +66,33 @@ def process_command(cmd):
             print_to_terminal("Get what?")
             return
         item = parts[1]
-        room_data = rooms[currentRoom]
-        if "item" in room_data and room_data["item"] == item:
+        if "item" in rooms[currentRoom] and rooms[currentRoom]["item"] == item:
             inventory.append(item)
             print_to_terminal(f"You picked up the <b>{item}</b>!")
-            del room_data["item"]
+            del rooms[currentRoom]["item"]
             showStatus()
         else:
             print_to_terminal(f"There is no {item} here!")
-    
     else:
         print_to_terminal("I don't understand that command.")
 
-def on_enter(event):
+# Handler function
+def handle_enter(event):
     if event.key == "Enter":
         input_box = document.getElementById("inputBox")
         cmd = input_box.value.strip()
-        
-        if cmd:                                   # only process if something was typed
+        if cmd:
             print_to_terminal(f"> {cmd}")
-            input_box.value = ""                  # clear the input box
-            process_command(cmd)                  # THIS was missing or broken before
+            input_box.value = ""
+            process_command(cmd)
 
 # === Start the game ===
 showInstructions()
 showStatus()
 
-# Connect the Enter key
+# Create proxy and attach listener (THIS is the fix)
+enter_proxy = create_proxy(handle_enter)
 input_box = document.getElementById("inputBox")
-input_box.addEventListener("keydown", on_enter)
+input_box.addEventListener("keydown", enter_proxy)
 input_box.focus()
 </script>
