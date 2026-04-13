@@ -115,19 +115,29 @@ def process_command(cmd):
     if not parts:
         return
 
-    if parts[0] == "go":
-        if len(parts) < 2:
-            print_to_terminal("Go where?")
+if parts[0] == "go":
+    if len(parts) < 2:
+        print_to_terminal("Go where?")
+        return
+
+    direction = parts[1]
+
+    if direction in rooms[currentRoom]:
+        currentRoom = rooms[currentRoom][direction]
+
+        if rooms[currentRoom].get("item") == "monster":
+            print_to_terminal('<span style="color:red">The monster got you... GAME OVER!</span>')
             return
-        direction = parts[1]
-        if direction in rooms[currentRoom]:
-            currentRoom = rooms[currentRoom][direction]
-            if rooms[currentRoom].get("item") == "monster":
-                print_to_terminal('<span style="color:red">The monster got you... GAME OVER!</span>')
-                return
-            showStatus()
-         else:
-            print_to_terminal("You can't go that way!")
+
+        showStatus()
+
+        # WIN CHECK — correctly placed
+        if currentRoom == "Garden" and "key" in inventory and "potion" in inventory:
+            print_to_terminal('<span style="color:lime">You escaped the house... YOU WIN!</span>')
+            return
+
+    else:
+        print_to_terminal("You can't go that way!")
         
         # win check (run after any move)
     
