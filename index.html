@@ -115,42 +115,37 @@ def process_command(cmd):
     if not parts:
         return
 
-if parts[0] == "go":
-    if len(parts) < 2:
-        print_to_terminal("Go where?")
-        return
-
-    direction = parts[1]
-
-    if direction in rooms[currentRoom]:
-        currentRoom = rooms[currentRoom][direction]
-
-        if rooms[currentRoom].get("item") == "monster":
-            print_to_terminal('<span style="color:red">The monster got you... GAME OVER!</span>')
+    if parts[0] == "go":
+        if len(parts) < 2:
+            print_to_terminal("Go where?")
             return
 
-        showStatus()
+        direction = parts[1]
 
-        # WIN CHECK — correctly aligned
-        if currentRoom == "Garden" and "key" in inventory and "potion" in inventory:
-            print_to_terminal('<span style="color:lime">You escaped the house... YOU WIN!</span>')
-            return
+        if direction in rooms[currentRoom]:
+            currentRoom = rooms[currentRoom][direction]
 
-    else:
-        print_to_terminal("You can't go that way!")
-        
-        # win check (run after any move)
-    
+            if rooms[currentRoom].get("item") == "monster":
+                print_to_terminal('<span style="color:red">The monster got you... GAME OVER!</span>')
+                return
+
+            showStatus()
+
+            # WIN CHECK
             if currentRoom == "Garden" and "key" in inventory and "potion" in inventory:
                 print_to_terminal('<span style="color:lime">You escaped the house... YOU WIN!</span>')
                 return
-       
+
+        else:
+            print_to_terminal("You can't go that way!")
 
     elif parts[0] == "get":
         if len(parts) < 2:
             print_to_terminal("Get what?")
             return
+
         item = parts[1]
+
         if "item" in rooms[currentRoom] and rooms[currentRoom]["item"] == item:
             inventory.append(item)
             print_to_terminal(f"You picked up the <b>{item}</b>!")
@@ -158,6 +153,7 @@ if parts[0] == "go":
             showStatus()
         else:
             print_to_terminal(f"There is no {item} here!")
+
     else:
         print_to_terminal("I don't understand that command.")
 
